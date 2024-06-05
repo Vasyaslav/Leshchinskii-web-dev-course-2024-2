@@ -1,0 +1,71 @@
+{% macro product_form(action, characteristics, categories, current_characteristics={}, product_data={},
+current_name='') %}
+<form method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="product_name" class="form-label">Название товара</label>
+        <input type="text" name="product_name" id="product_name" class="form-control" {% if action=='edit' %}
+            value="current_name" {% endif %}>
+    </div>
+
+    <h4 id="category_header">Категории</h4>
+    <div class="mb-3">
+        <select class="form-select" aria-label="Product category" name="product_category_select"
+            id="product_category_select">
+            {% for category in categories %}
+            <option value="{{ category.id }}" {% if action=='new' %} {%if product_data.category==category.id
+                %}selected{% endif %} {% endif %}>{{ category.category }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <h4 id="characteristics_header">Характеристики</h4>
+    {% if action == 'edit' and current_characteristics %}
+    {% for current_characteristic in current_characteristics %}
+    <div class="input-group mb-3">
+        <select class="form-select" aria-label="Product characteristic" name="product_characteristic_select_1"
+            id="product_characteristic_select_1">
+            {% for characteristic in characteristics %}
+            <option value="{{ characteristic.id }}" {% if characteristic.id==current_characteristic %}selected{% endif
+                %}>{{ characteristic.characteristic }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="product_characteristic_input_1" id="product_characteristic_input_1"
+            class="form-control" value="{{ current_characteristics[current_characteristic] }}">
+        <button class="btn btn-danger deleteBtn" id="product_characteristic_button_1">Удалить</button>
+    </div>
+    {% endfor %}
+    {% elif action == 'new' %}
+    <div class="input-group mb-3">
+        <select class="form-select" aria-label="Product characteristic" name="product_characteristic_select_1"
+            id="product_characteristic_select_1">
+            {% for characteristic in characteristics %}
+            <option value="{{ characteristic.id }}">{{ characteristic.characteristic }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="product_characteristic_input_1" id="product_characteristic_input_1"
+            class="form-control">
+        <button class="btn btn-danger deleteBtn" id="product_characteristic_button_1">Удалить</button>
+    </div>
+    {% endif %}
+    <div class="mb-3">
+        <button type="button" class="btn btn-success" id="product_characteristic_add_button">Добавить
+            характеристику</button>
+    </div>
+    {% if action == 'new' %}
+    <div class="mb-3">
+        <label for="product_img">Изображение товара</label>
+        <input class="form-control" type="file" name="product_img" id="product_img">
+    </div>
+    {% endif %}
+    <div class="mb-3">
+        <label for="product_description" class="form-label">Описание товара</label>
+        <textarea name="product_description" id="product_description" class="form-control" cols="30" rows="7" {% if
+            product_data %}value="product_data.description" {% endif %}></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="product_price" class="form-label">Цена товара</label>
+        <input type="number" name="product_price" id="product_price" class="form-control" min="0" value="0" step="0.01"
+            {% if product_data %}value="product_data.price" {% endif %}>
+    </div>
+    <button type="submit" class="btn btn-info">Сохранить</button>
+</form>
+{% endmacro %}

@@ -25,6 +25,7 @@ function add_characteristic_group(event) {
     console.log(sample);
     console.log(last_characteristic_number);
     sample.children[0].id = `product_characteristic_select_${last_characteristic_number + 1}`;
+    sample.children[0].name = `product_characteristic_select_${last_characteristic_number + 1}`;
     sample.children[1].id = `product_characteristic_input_${last_characteristic_number + 1}`;
     sample.children[1].name = `product_characteristic_input_${last_characteristic_number + 1}`;
     sample.children[2].id = `product_characteristic_button_${last_characteristic_number + 1}`;
@@ -33,6 +34,9 @@ function add_characteristic_group(event) {
     last_characteristic.after(sample);
 }
 
+for (let i = 0; i < document.body.querySelectorAll("button.deleteBtn").length; i++) {
+    document.body.querySelectorAll("button.deleteBtn")[i].onclick = delete_characteristic_group;
+}
 
 document.getElementById('product_characteristic_button_1').onclick = delete_characteristic_group;
 document.getElementById('product_characteristic_add_button').onclick = add_characteristic_group;

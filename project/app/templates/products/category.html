@@ -1,8 +1,8 @@
 {% extends 'products/index.html' %}
 
 {% block product_content %}
-<h2>Категории</h2>
-{% for category in categories %}
-<div>{{category.category}}</div>
+<h2>{{ category.category }}</h2>
+{% for product in products %}
+<div>{{product.name}}</div>
 {% endfor %}
 {% endblock %}

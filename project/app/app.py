@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_from_directory
 from flask_login import current_user
 from mysqldb import DBConnector
 import mysql.connector as connector
@@ -47,6 +47,20 @@ def record_action():
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route('/images/<image_id>')
+def image(image_id):
+    with db_connector.connect().cursor(named_tuple=True) as cursor:
+        cursor.execute(
+            "SELECT * FROM images WHERE id = %s", [image_id]
+        )
+        print(cursor.statement)
+        img = cursor.fetchone()
+    print(img)
+    print(app.config['UPLOAD_FOLDER'])
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               img.filename)
 
 
 # python -m venv ve

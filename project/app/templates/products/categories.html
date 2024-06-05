@@ -1,0 +1,8 @@
+{% extends 'products/index.html' %}
+
+{% block product_content %}
+<h2>Категории</h2>
+{% for category in categories %}
+<a href="{{ url_for('products.category', category_id=category.id) }}">{{category.category}}</a>
+{% endfor %}
+{% endblock %}

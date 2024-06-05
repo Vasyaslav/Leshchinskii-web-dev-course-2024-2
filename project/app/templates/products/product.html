@@ -1,0 +1,67 @@
+{% extends 'products/index.html' %}
+
+{% block product_content %}
+<div class="container bg-info-subtle pb-3 rounded mb-4">
+    <h1 class="mb-2">{{ product.name }}</h1>
+    <h3 class="mb-3">Цена: {{ product.price }} ₽</h3>
+
+    <img class="mb-3" src="{{ url_for('image', image_id=image.id) }}" alt="Здесь могла быть картинка">
+
+    <div class="row">
+        <div class="column col-sm-4">
+            <button type="button" class="btn btn-success">Добавить в корзину</button>
+        </div>
+        {% if current_user.is_authenticated %}
+        {% if current_user.can('delete', user) %}
+        <div class="column col-sm-4">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                data-product-id="{{ product.id }}">Удалить</button>
+        </div>
+        {% endif %}
+        {% if current_user.can('update', user) %}
+        <div class="column col-sm-4">
+            <button type="button" class="btn btn-info">Редактировать</button>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="container bg-info-subtle rounded mb-4">
+    <h3>Характеристики {{ product.name }}</h3>
+    <ul class="mb-3 pb-2">
+        {% for characteristic in characteristics %}
+        <li>{{ characteristic.characteristic }}:&nbsp;{{ characteristic.value }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="container bg-info-subtle rounded mb-4">
+    <h3>Описание</h3>
+    <p>{{ product.description }}</p>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteModalLabel">Удаление товара</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить данный товар?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                <form method="post" id="deleteModalForm">
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='product_delete_modal.js') }}"></script>
+{% endblock %}

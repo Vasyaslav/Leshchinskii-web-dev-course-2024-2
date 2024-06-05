@@ -29,7 +29,7 @@ def index():
 @bp.route("/<int:user_id>/delete", methods=["POST"])
 @login_required
 @check_rights("delete")
-def delete(user_id):
+def delete_user(user_id):
     connection = db_connector.connect()
     with connection.cursor(named_tuple=True) as cursor:
         query = "DELETE FROM users WHERE id = %s"
@@ -40,8 +40,6 @@ def delete(user_id):
 
 
 @bp.route("/reg", methods=["POST", "GET"])
-@login_required
-@check_rights("create")
 def reg():
     user_data = {}
     if request.method == "POST":
