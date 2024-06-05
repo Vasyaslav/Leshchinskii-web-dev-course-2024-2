@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row credentials">
+        <div class="column col-lg-2 col-sm-4 text-center">
+            <p class="mb-0">Фамилия</p>
+            <p>{{ user_data.last_name }}</p>
+        </div>
+        <div class="column col-lg-2 col-sm-4 text-center">
+            <p class="mb-0">Имя</p>
+            <p>{{ user_data.first_name }}</p>
+        </div>
+        <div class="column col-lg-2 col-sm-4 text-center">
+            <p class="mb-0">Отчество</p>
+            <p>{{ user_data.middle_name or '-' }}</p>
+        </div>
+        <div class="column col-lg-2 col-sm-6 text-center">
+            <p class="mb-0">Логин</p>
+            <p>{{ user_data.login }}</p>
+        </div>
+        <div class="column col-lg-4 col-sm-6 text-center align-self-center">
+            <button class="btn btn-info">Редактировать профиль</button>
+        </div>
+    </div>
+    <div class="row products">
+        <div class="column col-lg-1 col-sm-0 text-center"></div>
+        <div class="column col-lg-5 col-sm-7 text-center"></div>
+        <div class="column col-lg-3 col-sm-3 text-center">Цена: ₽</div>
+        <div class="column col-lg-2 col-sm-2 text-center">
+            <button type="button" class="btn btn-success">Купить</button>
+        </div>
+        <div class="column col-lg-1 col-sm-0 text-center"></div>
+    </div>
+    <div class="row products_orders_buttons">
+        <div class="column col-sm-4 text-center align-self-center">
+            <button class="btn btn-info">Скачать список товаров</button>
+        </div>
+        <div class="column col-sm-4 text-center align-self-center">
+            <button class="btn btn-info">Загрузить список товаров</button>
+        </div>
+        <div class="column col-sm-4 text-center align-self-center">
+            <button class="btn btn-info">Посмотреть бывшие заказы</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

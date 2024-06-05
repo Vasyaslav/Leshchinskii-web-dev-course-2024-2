@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="post">
+    <label for="new_characteristic" class="form-label">Новая категория</label>
+    <input type="text" name="new_category" id="new_category" class="form-control mb-3" placeholder="Добавьте категорию">
+    <button type="submit" class="btn btn-info">Сохранить</button>
+</form>
+{% endblock %}

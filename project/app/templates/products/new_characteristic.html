@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="post">
+    <label for="new_characteristic" class="form-label">Новая характеристика</label>
+    <input type="text" name="new_characteristic" id="new_characteristic" class="form-control mb-3"
+        placeholder="Добавьте характеристику">
+    <button type="submit" class="btn btn-info">Сохранить</button>
+</form>
+{% endblock %}

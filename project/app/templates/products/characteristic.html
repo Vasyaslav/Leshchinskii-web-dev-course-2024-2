@@ -1,0 +1,8 @@
+{% extends 'products/index.html' %}
+
+{% block product_content %}
+<h2>Категории</h2>
+{% for characteristic in characteristics %}
+<div>{{characteristic.characteristic}}</div>
+{% endfor %}
+{% endblock %}

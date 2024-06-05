@@ -1,0 +1,16 @@
+.body {
+    font-size: 1.25rem;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+.main {
+    flex: 1
+}
+
+.footer {
+    width: 100%;
+}
+
+ы

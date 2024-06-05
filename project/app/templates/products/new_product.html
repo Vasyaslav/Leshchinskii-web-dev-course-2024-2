@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="post">
+    <h2>Добавление товара</h2>
+    <div class="mb-3">
+        <label for="product_name" class="form-label">Название товара</label>
+        <input type="text" name="product_name" id="product_name" class="form-control">
+    </div>
+    <h4 id="characteristics_header">Характеристики</h4>
+    <div class="input-group mb-3">
+        <select class="form-select" aria-label="Product category" id="product_characteristic_select_1">
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.category }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="product_characteristic_input_1" id="product_characteristic_input_1"
+            class="form-control">
+        <button class="btn btn-danger" id="product_characteristic_button_1">Удалить</button>
+
+    </div>
+    <div class="mb-3">
+        <button type="button" class="btn btn-success" id="product_characteristic_add_button">Добавить
+            характеристику</button>
+    </div>
+    <div class="mb-3">
+        <label for="product_description" class="form-label">Описание товара</label>
+        <textarea name="product_description" id="product_description" class="form-control" cols="30"
+            rows="7"></textarea>
+    </div>
+    <button type="submit" class="btn btn-info">Сохранить</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='new_product_characteristic.js') }}"></script>
+{% endblock %}
