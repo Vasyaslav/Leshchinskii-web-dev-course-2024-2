@@ -5,13 +5,16 @@
     <h1 class="mb-2">{{ product.name }}</h1>
     <h3 class="mb-3">Цена: {{ product.price }} ₽</h3>
 
-    <img class="mb-3" src="{{ url_for('image', image_id=image.id) }}" alt="Здесь могла быть картинка">
+    <img class="img-fluid mb-3" src="{{ url_for('image', image_id=image.id) }}" alt="Здесь могла быть картинка">
 
     <div class="row">
-        <div class="column col-sm-4">
-            <button type="button" class="btn btn-success">Добавить в корзину</button>
-        </div>
         {% if current_user.is_authenticated %}
+        <div class="column col-sm-4">
+            <form method="post"
+                action="{{ url_for('user_products.buy_product', product_id=product.id, user_id=current_user.id) }}">
+                <button type="submit" class="btn btn-success">Добавить в корзину</button>
+            </form>
+        </div>
         {% if current_user.can('delete', user) %}
         <div class="column col-sm-4">
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"

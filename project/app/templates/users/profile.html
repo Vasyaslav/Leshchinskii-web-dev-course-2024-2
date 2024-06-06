@@ -2,46 +2,92 @@
 
 {% block content %}
 <div class="container">
-    <div class="row credentials">
-        <div class="column col-lg-2 col-sm-4 text-center">
-            <p class="mb-0">Фамилия</p>
+    <div class="row credentials bg-info-subtle rounded mb-4">
+        <div class="column col-lg-2 col-sm-4 text-center border rounded border-info">
+            <p class="mb-0"><b>Фамилия</b></p>
             <p>{{ user_data.last_name }}</p>
         </div>
-        <div class="column col-lg-2 col-sm-4 text-center">
-            <p class="mb-0">Имя</p>
+        <div class="column col-lg-2 col-sm-4 text-center border rounded border-info">
+            <p class="mb-0"><b>Имя</b></p>
             <p>{{ user_data.first_name }}</p>
         </div>
-        <div class="column col-lg-2 col-sm-4 text-center">
-            <p class="mb-0">Отчество</p>
+        <div class="column col-lg-2 col-sm-4 text-center border rounded border-info">
+            <p class="mb-0"><b>Отчество</b></p>
             <p>{{ user_data.middle_name or '-' }}</p>
         </div>
-        <div class="column col-lg-2 col-sm-6 text-center">
-            <p class="mb-0">Логин</p>
+        <div class="column col-lg-2 col-sm-6 text-center border rounded border-info">
+            <p class="mb-0"><b>Логин</b></p>
             <p>{{ user_data.login }}</p>
         </div>
         <div class="column col-lg-4 col-sm-6 text-center align-self-center">
-            <button class="btn btn-info">Редактировать профиль</button>
+            <a href="{{ url_for('users.edit', user_id=current_user.id) }}">
+                <button class="btn btn-info">Редактировать профиль</button>
+            </a>
         </div>
     </div>
-    <div class="row products">
-        <div class="column col-lg-1 col-sm-0 text-center"></div>
-        <div class="column col-lg-5 col-sm-7 text-center"></div>
-        <div class="column col-lg-3 col-sm-3 text-center">Цена: ₽</div>
-        <div class="column col-lg-2 col-sm-2 text-center">
-            <button type="button" class="btn btn-success">Купить</button>
+    {% for product in user_products %}
+    <div class="row products bg-info-subtle rounded mb-4 py-3">
+        <div class="column col-lg-2 col-sm-2 text-center mb-2">
+            <div class="amount d-flex flex-row justify-content-center">
+                <form
+                    action="{{ url_for('user_products.reduce_amount', user_id=current_user.id, product_id=product.id) }}"
+                    method="post">
+                    <button class="addAmountBtn btn border border-end-0 border-danger-subtle pt-1">-</button>
+                </form>
+                <p class="text-center border border-end-0 border-start-0 border-danger-subtle mb-0">{{ product.amount }}
+                </p>
+                <form action="{{ url_for('user_products.add_amount', user_id=current_user.id, product_id=product.id) }}"
+                    method="post">
+                    <button class="reduceAmountBtn btn border border-start-0 border-danger-subtle pt-1">+</button>
+                </form>
+            </div>
+        </div>
+        <div class="column col-lg-5 col-sm-5 text-center link-underline-opacity-0 link-success mb-2"><a
+                href="{{ url_for('products.product', product_id=product.id) }}">{{ product.name }}</a></div>
+        <div class="column col-lg-3 col-sm-2 text-center mb-2">Цена: {{ product.price }} ₽</div>
+        <div class="column col-lg-2 col-sm-3 text-center mb-2">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                data-product-id="{{ product.id }}" data-user-id="{{ current_user.id }}">Удалить</button>
         </div>
         <div class="column col-lg-1 col-sm-0 text-center"></div>
     </div>
-    <div class="row products_orders_buttons">
-        <div class="column col-sm-4 text-center align-self-center">
-            <button class="btn btn-info">Скачать список товаров</button>
+    {% endfor %}
+    <div class="row products_orders_buttons bg-info-subtle rounded py-3">
+        <div class="column col-sm-4 text-center align-self-center mb-2">
+            <a class="btn btn-info" href="{{ url_for('user_products.user_products_export') }}">Скачать список
+                товаров</a>
         </div>
-        <div class="column col-sm-4 text-center align-self-center">
+        <div class="column col-sm-4 text-center align-self-center mb-2">
             <button class="btn btn-info">Загрузить список товаров</button>
         </div>
-        <div class="column col-sm-4 text-center align-self-center">
+        <div class="column col-sm-4 text-center align-self-center mb-2">
             <button class="btn btn-info">Посмотреть бывшие заказы</button>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteModalLabel">Удаление товара</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить данный товар?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                <form method="post" id="deleteModalForm">
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='user_product_delete_modal.js') }}"></script>
 {% endblock %}

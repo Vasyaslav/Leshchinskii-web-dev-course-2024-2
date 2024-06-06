@@ -27,6 +27,11 @@ from products import bp as products_bp
 app.register_blueprint(products_bp)
 
 
+from user_products import bp as user_product_bp
+
+app.register_blueprint(user_product_bp)
+
+
 @app.before_request
 def record_action():
     if request.endpoint == "static":

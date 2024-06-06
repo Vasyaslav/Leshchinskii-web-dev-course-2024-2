@@ -1,14 +1,13 @@
 'use strict';
 
-// Скрипт для перенаправления на url для удаления при удалении товара
+// Скрипт для перенаправления на url для удаления при удалении характеристики
 
 function modalShown(event) {
     let button = event.relatedTarget;
-    let productId = button.dataset.productId;
-    let newUrl = `/products/${productId}/delete_product`;
+    let categoryId = button.dataset.categoryId;
+    let newUrl = `/products/${categoryId}/delete_category`;
     let form = document.getElementById('deleteModalForm');
     form.action = newUrl;
-    console.log(newUrl)
 }
 
 let modal = document.getElementById('deleteModal');

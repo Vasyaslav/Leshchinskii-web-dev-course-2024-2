@@ -1,8 +1,37 @@
 {% extends 'products/index.html' %}
 
 {% block product_content %}
-<h2>Категории</h2>
+<h2 class="mb-3">Характеристики</h2>
+<a class="btn btn-success mb-3" href="{{ url_for('products.new_characteristic') }}">Добавить характеристику</a>
 {% for characteristic in characteristics %}
-<div>{{characteristic.characteristic}}</div>
+<div class="d-flex justify-content-between bg-info-subtle rounded p-2 mb-3">
+    <p class="m-0">{{characteristic.characteristic}}</p>
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"
+        data-characteristic-id="{{ characteristic.id }}">Удалить</button>
+</div>
 {% endfor %}
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteModalLabel">Удаление характеристики</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить данную характеристику?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                <form method="post" id="deleteModalForm">
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='characteristic_delete_modal.js') }}"></script>
 {% endblock %}

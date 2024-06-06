@@ -53,10 +53,105 @@ def category(category_id):
     return render_template("products/category.html", products=products, category=category)
 
 
+@bp.route("/new_category", methods=["POST", "GET"])
+@login_required
+@check_rights("create")
+def new_category():
+    if request.method == "POST":
+        if not request.form["new_category"]:
+            flash(
+                "Ошибка. Проверьте, что все необходимые поля заполнены.",
+                "danger",
+            )
+            return render_template("products/new_category.html")
+        elif len(request.form["new_category"]) > 40:
+            flash(
+                "Ошибка. Размер названия характеристики не должно быть больше 40.",
+                "danger",
+            )
+            return render_template("products/new_category.html")
+        try:
+            connection = db_connector.connect()
+            with connection.cursor(named_tuple=True, buffered=True) as cursor:
+                cursor.execute("INSERT INTO categories (category) VALUES(%s)", [request.form["new_category"]])
+                print(cursor.statement)
+                connection.commit()
+            flash("Характеристика успешно создана", "success")
+            return redirect(url_for("products.categories"))
+        except connector.errors.DatabaseError as e:
+            flash(
+                f"Произошла ошибка при добавлении характеристики. Нарушение связи с базой данных. {e}",
+                "danger",
+            )
+            connection.rollback()
+    return render_template("products/new_category.html")
+
+
+@bp.route("/<int:category_id>/delete_category", methods=["POST"])
+@login_required
+@check_rights("delete")
+def delete_category(category_id):
+    connection = db_connector.connect()
+    with connection.cursor(named_tuple=True) as cursor:
+        query = "DELETE FROM categories WHERE id = %s"
+        cursor.execute(query, [category_id])
+        connection.commit()
+    flash("Категория успешно удалена", "success")
+    return redirect(url_for("products.categories"))
+
+
 @bp.route("/characteristic")
-#@check_rights("create")
-def characteristic():
+@login_required
+@check_rights("create")
+def characteristics():
     return render_template("products/characteristics.html", characteristics=get_characteristics())
+
+
+@bp.route("/new_characteristic", methods=["POST", "GET"])
+@login_required
+@check_rights("create")
+def new_characteristic():
+    if request.method == "POST":
+        if not request.form["new_characteristic"]:
+            flash(
+                "Ошибка. Проверьте, что все необходимые поля заполнены.",
+                "danger",
+            )
+            return render_template("products/new_characteristic.html")
+        elif len(request.form["new_characteristic"]) > 40:
+            flash(
+                "Ошибка. Размер названия характеристики не должно быть больше 40.",
+                "danger",
+            )
+            return render_template("products/new_characteristic.html")
+        try:
+            connection = db_connector.connect()
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO characteristics (characteristic) VALUES(%s)", [request.form["new_characteristic"]])
+                print(cursor.statement)
+                connection.commit()
+            flash("Характеристика успешно создана", "success")
+            return redirect(url_for("products.characteristics"))
+        except connector.errors.DatabaseError:
+            flash(
+                f"Произошла ошибка при добавлении характеристики. Нарушение связи с базой данных.",
+                "danger",
+            )
+            connection.rollback()
+    return render_template("products/new_characteristic.html")
+
+
+@bp.route("/<int:characteristic_id>/delete_characteristic", methods=["POST"])
+@login_required
+@check_rights("delete")
+def delete_characteristic(characteristic_id):
+    connection = db_connector.connect()
+    with connection.cursor(named_tuple=True) as cursor:
+        query = "DELETE FROM characteristics WHERE id = %s"
+        cursor.execute(query, [characteristic_id])
+        connection.commit()
+    flash("Характеристика успешно удалена", "success")
+    return redirect(url_for("products.characteristics"))
 
 
 @bp.route ("/<int:product_id>")
@@ -76,7 +171,7 @@ def product(product_id):
     return render_template("products/product.html", product=product_data, characteristics=product_characteristics_data, image=get_image(product_data.id))
 
 
-@bp.route("/<int:product_id>/delete", methods=["POST"])
+@bp.route("/<int:product_id>/delete_product", methods=["POST"])
 @login_required
 @check_rights("delete")
 def delete_product(product_id):
@@ -112,7 +207,7 @@ def new_product():
             )
             return render_template("products/new_product.html", characteristics=characteristics, categories=categories)
         try:
-            connection = db_connector.conn
+            connection = db_connector.connect()
             with connection.cursor(named_tuple=True, buffered=True) as cursor:
                 # Добавление товара в таблицу с товарами
                 query = ("INSERT INTO products (name, description, price, category_id) "
@@ -159,69 +254,3 @@ def new_product():
             )
             connection.rollback()
     return render_template("products/new_product.html", characteristics=characteristics, categories=categories)
-
-
-@bp.route("/new_characteristic", methods=["POST", "GET"])
-#@check_rights("create")
-def new_characteristic():
-    if request.method == "POST":
-        if not request.form["new_characteristic"]:
-            flash(
-                "Ошибка. Проверьте, что все необходимые поля заполнены.",
-                "danger",
-            )
-            return render_template("products/new_characteristic.html")
-        elif len(request.form["new_characteristic"]) > 40:
-            flash(
-                "Ошибка. Размер названия характеристики не должно быть больше 40.",
-                "danger",
-            )
-            return render_template("products/new_characteristic.html")
-        try:
-            connection = db_connector.connect()
-            with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO characteristics (characteristic) VALUES(%s)", [request.form["new_characteristic"]])
-                print(cursor.statement)
-                connection.commit()
-            flash("Характеристика успешно создана", "success")
-            return redirect(url_for("products.categories"))
-        except connector.errors.DatabaseError:
-            flash(
-                f"Произошла ошибка при добавлении характеристики. Нарушение связи с базой данных.",
-                "danger",
-            )
-            connection.rollback()
-    return render_template("products/new_characteristic.html")
-
-
-@bp.route("/new_category", methods=["POST", "GET"])
-#@check_rights("create")
-def new_category():
-    if request.method == "POST":
-        if not request.form["new_category"]:
-            flash(
-                "Ошибка. Проверьте, что все необходимые поля заполнены.",
-                "danger",
-            )
-            return render_template("products/new_category.html")
-        elif len(request.form["new_category"]) > 40:
-            flash(
-                "Ошибка. Размер названия характеристики не должно быть больше 40.",
-                "danger",
-            )
-            return render_template("products/new_category.html")
-        try:
-            connection = db_connector.connect()
-            with connection.cursor(named_tuple=True, buffered=True) as cursor:
-                cursor.execute("INSERT INTO categories (category) VALUES(%s)", [request.form["new_category"]])
-                print(cursor.statement)
-                connection.commit()
-            flash("Характеристика успешно создана", "success")
-            return redirect(url_for("products.categories"))
-        except connector.errors.DatabaseError as e:
-            flash(
-                f"Произошла ошибка при добавлении характеристики. Нарушение связи с базой данных. {e}",
-                "danger",
-            )
-            connection.rollback()
-    return render_template("products/new_category.html")

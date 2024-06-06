@@ -5,4 +5,16 @@
     Добро пожаловать в интернет-магазин Технарь!
 </h3>
 <p class="text-center">На нашем сайте вы сможете подобрать и приобрести электронную технику.</p>
+{% if current_user.can('create') %}
+<div class="container">
+    <div class="row justify-content-between">
+        <div class="column col-sm-4 mb-2 text-center"><a class="btn btn-success"
+                href="{{ url_for('products.characteristics') }}">Характеристики</a></div>
+        <div class="column col-sm-4 mb-2 text-center"><a class="btn btn-success"
+                href="{{ url_for('products.categories') }}">Категории</a></div>
+        <div class="column col-sm-4 mb-2 text-center"><a class="btn btn-success"
+                href="{{ url_for('products.new_product') }}">Добавить товар</a></div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

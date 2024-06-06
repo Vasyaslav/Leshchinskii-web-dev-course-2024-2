@@ -101,11 +101,12 @@ def profile(user_id):
         if user_data is None:
             flash("Пользователя нет в базе данных", "danger")
             return redirect(url_for("users.index"))
-        query = "SELECT name FROM roles WHERE id = %s"
-        cursor.execute(query, [user_data.role_id])
-        user_role = cursor.fetchone()
+        query = ("SELECT * FROM products LEFT JOIN `user-product` on products.id = `user-product`.product_id "
+                 "WHERE `user-product`.user_id = %s")
+        cursor.execute(query, [current_user.id])
+        user_products = cursor.fetchall()
         return render_template(
-            "users/profile.html", user_data=user_data, user_role=user_role.name
+            "users/profile.html", user_data=user_data, user_products=user_products
         )
 
 
@@ -123,7 +124,7 @@ def edit(user_id):
         user_data = cursor.fetchone()
         if user_data is None:
             flash("Пользователя нет в базе данных", "danger")
-            return redirect(url_for("users"))
+            return redirect(url_for("index"))
     if request.method == "POST":
         fields = ["first_name", "middle_name", "last_name", "role_id"]
         if not current_user.can("assign_role"):
@@ -141,9 +142,8 @@ def edit(user_id):
                 cursor.execute(query, user_data)
                 connection.commit()
             flash("Учетная запись успешно изменена", "success")
-            return redirect(url_for("users.index"))
+            return redirect(url_for("users.profile", user_id=current_user.id))
         except connector.errors.DatabaseError as error:
             flash(f"Произошла ошибка при изменении записи: {error}", "danger")
             connection.rollback()
-
     return render_template("users/edit.html", user_data=user_data, roles=get_roles())
