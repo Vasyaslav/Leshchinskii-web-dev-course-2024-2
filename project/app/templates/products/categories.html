@@ -2,7 +2,7 @@
 
 {% block product_content %}
 <h2 class="mb-3">Категории</h2>
-{% if current_user.can('create') %}
+{% if current_user.is_authenticated and current_user.can('create') %}
 <a class="btn btn-success mb-3" href="{{ url_for('products.new_category') }}">Добавить категорию</a>
 {% endif %}
 {% for category in categories %}

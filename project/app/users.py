@@ -1,8 +1,11 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from app import db_connector
 from flask_login import login_required, current_user
 from auto import check_rights
 import mysql.connector as connector
+from werkzeug.utils import secure_filename
+import csv
+from os.path import join
 
 bp = Blueprint("users", __name__, url_prefix="/users")
 
@@ -91,7 +94,9 @@ def view(user_id):
         )
 
 
-@bp.route("/<int:user_id>/profile")
+@bp.route("/<int:user_id>/profile", methods=["POST", "GET"])
+@login_required
+@check_rights("read")
 def profile(user_id):
     user_data = {}
     with db_connector.connect().cursor(named_tuple=True, buffered=True) as cursor:
@@ -105,14 +110,37 @@ def profile(user_id):
                  "WHERE `user-product`.user_id = %s")
         cursor.execute(query, [current_user.id])
         user_products = cursor.fetchall()
-        return render_template(
-            "users/profile.html", user_data=user_data, user_products=user_products
-        )
+    # if request.method == "POST":
+    #     print(1)
+    #     if "user_products_csv" in request.files:
+    #         try:
+    #             connection = db_connector.connect()
+    #             with connection.cursor(named_tuple=True, buffered=True) as cursor:
+    #                 user_products_csv = request.files["user_products_csv"]
+    #                 user_products_csv.save(join(current_app.config["UPLOAD_FOLDER"], secure_filename(user_products_csv.filename)))
+    #                 with open(join(current_app.config["UPLOAD_FOLDER"], secure_filename(user_products_csv.filename)), newline='') as f:
+    #                     text = csv.reader(f, delimiter=',')
+    #                     for row in list(text)[1:]:
+    #                         cursor.execute("DELETE FROM `user-product` WHERE user_id = %s", [user_id])
+    #                         cursor.execute("SELECT id FROM products WHERE name")
+    #                         query = ("INSERT INTO `user-product` (user_id, product_id, amount) "
+    #                                  "VALUES(%s, %s, %s)")
+    #                         cursor.execute(query, [current_user.id,  ,row[2]])
+    #                         print(', '.join(row))
+    #                 connection.commit()
+    #                 print(cursor.statement)
+    #         except connector.errors.DatabaseError as e:
+    #             flash(
+    #                 f"Произошла ошибка при добавлении характеристики. Нарушение связи с базой данных. {e}",
+    #                 "danger",
+    #             )
+    #             connection.rollback()
+    return render_template("users/profile.html", user_data=user_data, user_products=user_products)
 
 
 @bp.route("/<int:user_id>/edit", methods=["POST", "GET"])
 @login_required
-@check_rights("update")
+@check_rights("update_user")
 def edit(user_id):
     user_data = {}
     with db_connector.connect().cursor(named_tuple=True, buffered=True) as cursor:
@@ -147,3 +175,78 @@ def edit(user_id):
             flash(f"Произошла ошибка при изменении записи: {error}", "danger")
             connection.rollback()
     return render_template("users/edit.html", user_data=user_data, roles=get_roles())
+
+
+@bp.route("/<int:user_id>/new_order", methods=["POST", "GET"])
+@login_required
+@check_rights("read")
+def new_order(user_id):
+    orders_data = {}
+    sum_price = 0.0
+    with db_connector.connect().cursor(named_tuple=True) as cursor:
+        query = ("SELECT products.*, amount from products LEFT JOIN `user-product` "
+                 "ON products.id = `user-product`.product_id WHERE "
+                 "`user-product`.user_id = %s")
+        cursor.execute(query, [user_id])
+        orders_data = cursor.fetchall()
+        print(orders_data)
+    if not orders_data:
+        flash("Нет товаров в корзине", "danger")
+        return redirect(url_for("users.profile", user_id=user_id))
+    for product in orders_data:
+        sum_price += product.price * product.amount
+    if request.method == "POST":
+        try:
+            connection = db_connector.connect()
+            with connection.cursor(buffered=True, named_tuple=True) as cursor:
+                # Добавление id пользователя в таблицу с заказами
+                query = ("INSERT INTO orders (user_id) "
+                         "VALUES(%s)")
+                cursor.execute(query, [user_id])
+                print(cursor.statement)
+                # Поиск id нашего заказа
+                query = ("SELECT id FROM orders WHERE "
+                         "user_id = %s")
+                cursor.execute(query, [user_id])
+                order_id = cursor.fetchall()
+                order_id = sorted(order_id, reverse=True, key=lambda x: x.id)[0]
+                print(cursor.statement)
+                print(order_id)
+                # Добавление записей в связующую таблицу `order-product`
+                for product in orders_data:
+                    query = ("INSERT INTO `order-product` (product_id, order_id, amount) "
+                             "VALUES(%s, %s, %s)")
+                    cursor.execute(query, [product.id, order_id[0], product.amount])
+                    print(cursor.statement)
+                # Очистка текущего списка покупок
+                query = ("DELETE FROM `user-product` WHERE "
+                         "user_id = %s")
+                cursor.execute(query, [user_id])
+                print(cursor.statement)
+                connection.commit()
+            flash("Заказ оформлен", "success")
+            return redirect(url_for("users.profile", user_id=user_id))
+        except connector.errors.DatabaseError as e:
+            flash(
+                f"Произошла ошибка при оформлении заказа. Проверьте, что все необходимые поля заполнены {e}sss",
+                "danger",
+            )
+            connection.rollback()
+    return render_template("users/new_order.html", orders_data=orders_data, sum_price=sum_price)
+
+
+@bp.route("/<int:user_id>/previous_orders")
+@login_required
+@check_rights("read")
+def previous_orders(user_id):
+    orders_data = {}
+    with db_connector.connect().cursor(buffered=True, named_tuple=True) as cursor:
+        query = ('SELECT products.name, products.description, products.price, amount, orders.id from products LEFT JOIN `order-product` '
+                 'ON products.id = `order-product`.product_id LEFT JOIN orders '
+                 'ON `order-product`.order_id = orders.id WHERE '
+                 'orders.user_id = %s')
+        cursor.execute(query, [user_id])
+        orders_data = cursor.fetchall()
+        print(cursor.statement)
+        print(orders_data)
+    return render_template("users/previous_orders.html", orders_data=orders_data)

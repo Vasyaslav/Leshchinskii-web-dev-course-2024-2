@@ -5,7 +5,7 @@
     Добро пожаловать в интернет-магазин Технарь!
 </h3>
 <p class="text-center">На нашем сайте вы сможете подобрать и приобрести электронную технику.</p>
-{% if current_user.can('create') %}
+{% if current_user.is_authenticated and current_user.can('create') %}
 <div class="container">
     <div class="row justify-content-between">
         <div class="column col-sm-4 mb-2 text-center"><a class="btn btn-success"

@@ -9,7 +9,7 @@ bp = Blueprint("user_products", __name__, url_prefix="/user_products")
 
 
 @bp.route("/<int:user_id>/<int:product_id>/add", methods=["POST"])
-#@check_rights("update")
+@check_rights("update_user")
 def buy_product(user_id, product_id):
     data = {"user_id": user_id, "product_id": product_id}
     try:
@@ -46,7 +46,7 @@ def buy_product(user_id, product_id):
 
 
 @bp.route("/<int:user_id>/<int:product_id>/delete", methods=["POST"])
-#@check_rights("update")
+@check_rights("update_user")
 def delete_product(user_id, product_id):
     data = {"user_id": user_id, "product_id": product_id}
     try:
@@ -79,7 +79,7 @@ def delete_product(user_id, product_id):
 
 
 @bp.route("/<int:user_id>/<int:product_id>/add_amount", methods=["POST"])
-#@check_rights("update")
+@check_rights("update_user")
 def add_amount(user_id, product_id):
     data = {"user_id": user_id, "product_id": product_id}
     try:
@@ -111,7 +111,7 @@ def add_amount(user_id, product_id):
 
 
 @bp.route("/<int:user_id>/<int:product_id>/reduce_amount", methods=["POST"])
-#@check_rights("update")
+@check_rights("update_user")
 def reduce_amount(user_id, product_id):
     data = {"user_id": user_id, "product_id": product_id}
     try:

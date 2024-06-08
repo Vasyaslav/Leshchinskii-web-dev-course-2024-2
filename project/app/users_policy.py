@@ -9,10 +9,13 @@ class UsersPolicy:
         return current_user.is_admin()
 
     def read(self):
-        return True
-
-    def update(self):
         return current_user.is_admin() or current_user.id == self.user.id
+
+    def update_user(self):
+        return current_user.is_admin() or current_user.id == self.user.id
+    
+    def update_product(self):
+        return current_user.is_admin()
 
     def delete(self):
         return current_user.is_admin()

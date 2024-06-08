@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% for order in orders_data %}
+<div class="container bg-info-subtle rounded pt-3 pb-2 mb-3">
+    <h3>Заказ № {{ order.id }}</h3>
+    <h3>{{ order.name }}</h3>
+    <p>{{ order.description }}</p>
+    <p>{{ order.price }} ₽</p>
+</div>
+{% endfor %}
+{% endblock %}

@@ -185,13 +185,95 @@ def delete_product(product_id):
 
 
 @bp.route("/new_product", methods=["POST", "GET"])
-#@check_rights("create")
+@check_rights("create")
 def new_product():
     product_name = ""
     characteristics = get_characteristics()
     print(characteristics)
     categories = get_categories()
     print(categories)
+    if request.method == "POST":
+        print(request.form)
+        if not request.form["product_name"]:
+            flash(
+                "Ошибка. Проверьте, что все необходимые поля заполнены.",
+                "danger",
+            )
+            return render_template("products/new_product.html", characteristics=characteristics, categories=categories)
+        elif len(request.form["product_name"]) >= 60:
+            flash(
+                "Ошибка. Размер названия товара не должно быть больше 60.",
+                "danger",
+            )
+            return render_template("products/new_product.html", characteristics=characteristics, categories=categories)
+        try:
+            connection = db_connector.connect()
+            with connection.cursor(named_tuple=True, buffered=True) as cursor:
+                # Добавление товара в таблицу с товарами
+                query = ("INSERT INTO products (name, description, price, category_id) "
+                         "VALUES(%(product_name)s, %(product_description)s, %(product_price)s, %(product_category_select)s)")
+                cursor.execute(query, request.form)
+                print(cursor.statement)
+                # Получение id текущего товара
+                query = ("SELECT id from products where name = %(product_name)s "
+                         "and description = %(product_description)s and price = %(product_price)s "
+                         "and category_id = %(product_category_select)s")
+                cursor.execute(query, request.form)
+                current_product_id = cursor.fetchone().id
+                print(cursor.statement)
+                # Добавление значений в таблицу с товарами-характеристиками
+                for key in request.form:
+                    if key.split("_")[1] == "characteristic" and key.split("_")[2] == "input" and request.form[key]:
+                        if len(request.form[key]) >= 50:
+                            flash("Длина значения характеристики должна быть меньше 50 символов","danger")
+                            return render_template("products/new_product.html")
+                        product_characteristic_data = [current_product_id, 
+                                                         request.form[f"product_characteristic_select_{key.split('_')[3]}"], 
+                                                         request.form[key]]
+                        query = ("INSERT INTO `product-characteristic` "
+                                 "VALUES(%s, %s, %s)")
+                        cursor.execute(query, product_characteristic_data)
+                        print(cursor.statement)
+                # Добавление изображения в таблицу изображений и в папку media\images
+                if "product_img" in request.files and secure_filename(request.files["product_img"].filename):
+                    print("image =", request.files)
+                    product_image = request.files["product_img"]
+                    print(type(secure_filename(product_image.filename)), type(product_image.mimetype), type(current_product_id))
+                    image_data = [secure_filename(product_image.filename), product_image.mimetype, current_product_id]
+                    query = ("INSERT INTO images (filename, mimetype, product_id) "
+                             "VALUES(%s, %s, %s)")
+                    cursor.execute(query, image_data)
+                    product_image.save(join(current_app.config["UPLOAD_FOLDER"], image_data[0]))
+                    print(cursor.statement)
+                connection.commit()
+            flash("Товар успешно добавлен", "success")
+            return redirect(url_for("products.new_product"))
+        except connector.errors.DatabaseError as e:
+            flash(
+                f"Произошла ошибка при добавлении характеристики. Нарушение связи с базой данных. {e}",
+                "danger",
+            )
+            connection.rollback()
+    return render_template("products/new_product.html", characteristics=characteristics, categories=categories)
+
+
+@bp.route("/<int:product_id>/edit_product", methods=["POST", "GET"])
+@check_rights("update_product")
+def edit_product(product_id):
+    product_name = ""
+    characteristics = get_characteristics()
+    print(characteristics)
+    categories = get_categories()
+    print(categories)
+    with db_connector.connect().cursor(named_tuple=True, buffered=True) as cursor:
+        cursor.execute("SELECT * FROM products WHERE id = %s", [product_id])
+        product_data = cursor.fetchone()
+        cursor.execute("SELECT * FROM characteristics JOIN `product-characteristic` ON "
+                       "characteristics.id = `product-characteristic`.characteristic_id "
+                       "WHERE product_id = %s", [product_id])
+        current_characteristics = cursor.fetchall()
+    print("Тек. характеристики:", current_characteristics)
+    print("Характеристики:", characteristics)
     if request.method == "POST":
         print(request.form)
         if not request.form["product_name"]:
@@ -247,10 +329,12 @@ def new_product():
                 connection.commit()
             flash("Товар успешно добавлен", "success")
             return redirect(url_for("products.new_product"))
-        except Exception as e:
+        except connector.errors.DatabaseError as e:
             flash(
                 f"Произошла ошибка при добавлении характеристики. Нарушение связи с базой данных. {e}",
                 "danger",
             )
             connection.rollback()
-    return render_template("products/new_product.html", characteristics=characteristics, categories=categories)
+    return render_template("products/edit_product.html", characteristics=characteristics,
+     categories=categories, current_characteristics=current_characteristics,
+     product_data=product_data)

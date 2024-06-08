@@ -15,15 +15,16 @@
                 <button type="submit" class="btn btn-success">Добавить в корзину</button>
             </form>
         </div>
-        {% if current_user.can('delete', user) %}
+        {% if current_user.can('delete', current_user) %}
         <div class="column col-sm-4">
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"
                 data-product-id="{{ product.id }}">Удалить</button>
         </div>
         {% endif %}
-        {% if current_user.can('update', user) %}
+        {% if current_user.can('update_product', current_user) %}
         <div class="column col-sm-4">
-            <button type="button" class="btn btn-info">Редактировать</button>
+            <a class="btn btn-info"
+                href="{{ url_for('products.edit_product', product_id=product.id) }}">Редактировать</a>
         </div>
         {% endif %}
         {% endif %}

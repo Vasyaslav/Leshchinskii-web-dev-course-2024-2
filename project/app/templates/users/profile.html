@@ -44,7 +44,7 @@
         </div>
         <div class="column col-lg-5 col-sm-5 text-center link-underline-opacity-0 link-success mb-2"><a
                 href="{{ url_for('products.product', product_id=product.id) }}">{{ product.name }}</a></div>
-        <div class="column col-lg-3 col-sm-2 text-center mb-2">Цена: {{ product.price }} ₽</div>
+        <div class="column col-lg-3 col-sm-2 text-center mb-2">Цена: {{ product.price * product.amount }} ₽</div>
         <div class="column col-lg-2 col-sm-3 text-center mb-2">
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"
                 data-product-id="{{ product.id }}" data-user-id="{{ current_user.id }}">Удалить</button>
@@ -53,15 +53,22 @@
     </div>
     {% endfor %}
     <div class="row products_orders_buttons bg-info-subtle rounded py-3">
-        <div class="column col-sm-4 text-center align-self-center mb-2">
+        <div class="column col-sm-3 text-center align-self-center mb-2">
             <a class="btn btn-info" href="{{ url_for('user_products.user_products_export') }}">Скачать список
                 товаров</a>
         </div>
-        <div class="column col-sm-4 text-center align-self-center mb-2">
-            <button class="btn btn-info">Загрузить список товаров</button>
+        <div class="column col-sm-3 text-center align-self-center mb-2">
+            <a class="btn btn-info" href="{{ url_for('users.new_order', user_id=current_user.id) }}">Оформить заказ</a>
         </div>
-        <div class="column col-sm-4 text-center align-self-center mb-2">
-            <button class="btn btn-info">Посмотреть бывшие заказы</button>
+        <div class="column col-sm-3 text-center align-self-center mb-2">
+            <form method="post" enctype="multipart/form-data">
+                <input class="form-control mb-2" type="file" name="user_products_csv" id="user_products_csv">
+                <button type="submit" class="btn btn-info">Загрузить список товаров</button>
+            </form>
+        </div>
+        <div class="column col-sm-3 text-center align-self-center mb-2">
+            <a class="btn btn-info" href="{{ url_for('users.previous_orders', user_id=current_user.id) }}">Посмотреть
+                бывшие заказы</a>
         </div>
     </div>
 </div>

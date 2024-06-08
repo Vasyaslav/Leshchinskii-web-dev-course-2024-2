@@ -17,7 +17,7 @@
   </div>
   <button type="submit" class="btn btn-primary">Войти</button>
 </form>
-<button class="btn btn-info mt-4"><a href="{{ url_for('users.reg') }}">Регистрация</a></button>
+<a class="btn btn-info mt-4" href="{{ url_for('users.reg') }}">Регистрация</a>
 {% if error %}
 <span>{{ error }}</span>
 {% endif %}

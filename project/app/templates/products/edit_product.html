@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 
+{% from 'products/form.html' import product_form %}
+
 {% block content %}
 <h2>Изменение товара</h2>
-{{ user_form('new', characteristics, categories, current_characteristics, product_data) }}
+{{ product_form('edit', characteristics, categories, current_characteristics, product_data) }}
 {% endblock %}
 
 {% block scripts %}

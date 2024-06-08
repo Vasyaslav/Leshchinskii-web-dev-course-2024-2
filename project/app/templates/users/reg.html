@@ -5,5 +5,5 @@
 {% block content %}
 <h2 class="mb-3">Регистрация</h2>
 {{ user_form(roles, 'reg', current_user, user_data) }}
-<button class="btn btn-info mt-3"><a href="{{ url_for('auto.auth') }}">Авторизация</a></button>
+<a class="btn btn-info mt-3" href="{{ url_for('auto.auth') }}">Авторизация</a>
 {% endblock %}
