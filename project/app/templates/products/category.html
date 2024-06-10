@@ -2,6 +2,26 @@
 
 {% block product_content %}
 <h2>{{ category.category }}</h2>
+<form method="post">
+    <div class="container-fluid mb-2">
+        <div class="row">
+            <h4 class="col-lg-3 px-0">Сортировать по</h4>
+            <div class="form-check col-lg-6">
+                <input class="form-check-input" type="radio" name="priceSort" id="priceUp" value="1" checked>
+                <label class="form-check-label" for="priceUp">
+                    Возрастанию цены
+                </label>
+            </div>
+            <div class="form-check col-lg-3">
+                <input class="form-check-input" type="radio" name="priceSort" id="priceDown" value="-1">
+                <label class="form-check-label" for="priceDown">
+                    Убыванию цены
+                </label>
+            </div>
+            <button class="btn btn-info col-lg-3" type="submit">Сортировать</button>
+        </div>
+    </div>
+</form>
 {% for product in products %}
 <div class="d-flex justify-content-between bg-info-subtle rounded pb-2 mb-3">
     <a class="mx-3 link-underline-opacity-0 link-success"

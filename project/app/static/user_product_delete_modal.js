@@ -9,7 +9,6 @@ function modalShown(event) {
     let newUrl = `/user_products/${userId}/${productId}/delete`;
     let form = document.getElementById('deleteModalForm');
     form.action = newUrl;
-    console.log(newUrl)
 }
 
 let modal = document.getElementById('deleteModal');

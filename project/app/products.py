@@ -41,16 +41,23 @@ def categories():
     return render_template("products/categories.html", categories=get_categories())
 
 
-@bp.route("/category/<int:category_id>")
+@bp.route("/category/<int:category_id>", methods=["POST", "GET"])
 def category(category_id):
+    sort_type = 1
     with db_connector.connect().cursor(named_tuple=True) as cursor:
-        cursor.execute("SELECT * FROM products WHERE category_id = %s", [category_id])
+        query = "SELECT * FROM products WHERE category_id = %s ORDER BY price"
+        if request.method == "POST" and request.form['priceSort'] == "-1":
+            query = "SELECT * FROM products WHERE category_id = %s ORDER BY -price"
+            sort_type = 2
+            print(1)
+            print(request.form['priceSort'])
+        cursor.execute(query, [category_id])
         # print(cursor.statement)
         products = cursor.fetchall()
         cursor.execute("SELECT * FROM categories WHERE id = %s", [category_id])
         # print(cursor.statement)
         category = cursor.fetchone()
-    return render_template("products/category.html", products=products, category=category)
+    return render_template("products/category.html", products=products, category=category, sort_type=sort_type)
 
 
 @bp.route("/new_category", methods=["POST", "GET"])
@@ -222,11 +229,16 @@ def new_product():
                 current_product_id = cursor.fetchone().id
                 print(cursor.statement)
                 # Добавление значений в таблицу с товарами-характеристиками
+                form_characteristics = []
                 for key in request.form:
                     if key.split("_")[1] == "characteristic" and key.split("_")[2] == "input" and request.form[key]:
                         if len(request.form[key]) >= 50:
                             flash("Длина значения характеристики должна быть меньше 50 символов","danger")
                             return render_template("products/new_product.html")
+                        if request.form[f"product_characteristic_select_{key.split('_')[3]}"] in form_characteristics:
+                            flash("Характеристики не должны повторяться","danger")
+                            return render_template("products/new_product.html")
+                        form_characteristics.append(request.form[f"product_characteristic_select_{key.split('_')[3]}"])
                         product_characteristic_data = [current_product_id, 
                                                          request.form[f"product_characteristic_select_{key.split('_')[3]}"], 
                                                          request.form[key]]
@@ -272,6 +284,7 @@ def edit_product(product_id):
                        "characteristics.id = `product-characteristic`.characteristic_id "
                        "WHERE product_id = %s", [product_id])
         current_characteristics = cursor.fetchall()
+    print("Данные о товаре:", product_data)
     print("Тек. характеристики:", current_characteristics)
     print("Характеристики:", characteristics)
     if request.method == "POST":
@@ -291,44 +304,48 @@ def edit_product(product_id):
         try:
             connection = db_connector.connect()
             with connection.cursor(named_tuple=True, buffered=True) as cursor:
-                # Добавление товара в таблицу с товарами
-                query = ("INSERT INTO products (name, description, price, category_id) "
-                         "VALUES(%(product_name)s, %(product_description)s, %(product_price)s, %(product_category_select)s)")
-                cursor.execute(query, request.form)
+                # Обновление товара в таблице с товарами
+                request_data_fields = ["product_name", "product_description", "product_price", "product_category_select"]
+                request_data = {field: request.form[field] for field in request_data_fields}
+                print("request_data", request_data)
+                request_data["id"] = f"{product_id}"
+                query = ('UPDATE products SET '
+                         'name = %(product_name)s, description = %(product_description)s, '
+                         'price = %(product_price)s, category_id = %(product_category_select)s WHERE '
+                         'id = %(id)s')
+                cursor.execute(query, request_data)
                 print(cursor.statement)
-                # Получение id текущего товара
-                query = ("SELECT id from products where name = %(product_name)s "
-                         "and description = %(product_description)s and price = %(product_price)s "
-                         "and category_id = %(product_category_select)s")
-                cursor.execute(query, request.form)
-                current_product_id = cursor.fetchone().id
-                print(cursor.statement)
+                # Удаление записей из таблицы с товарами-характеристиками
+                cursor.execute("DELETE FROM `product-characteristic` WHERE product_id = %s", [product_id])
+                # Подтверждение изменений, т.к. дальше изменения характеристик, а они должны быть уникальны
+                connection.commit()
                 # Добавление значений в таблицу с товарами-характеристиками
                 for key in request.form:
                     if key.split("_")[1] == "characteristic" and key.split("_")[2] == "input" and request.form[key]:
                         if len(request.form[key]) >= 50:
                             flash("Длина значения характеристики должна быть меньше 50 символов","danger")
                             return render_template("products/new_product.html")
-                        product_characteristic_data = [current_product_id, 
+                        product_characteristic_data = [product_id, 
                                                          request.form[f"product_characteristic_select_{key.split('_')[3]}"], 
                                                          request.form[key]]
-                        query = ("INSERT INTO `product-characteristic` "
-                                 "VALUES(%s, %s, %s)")
+                        query = ('INSERT INTO `product-characteristic` '
+                                 'VALUES(%s, %s, %s)')
                         cursor.execute(query, product_characteristic_data)
                         print(cursor.statement)
                 # Добавление изображения в таблицу изображений и в папку media\images
-                if "product_img" in request.files:
+                if "product_img" in request.files and secure_filename(request.files["product_img"].filename):
+                    # Если добавлено изображение, то удаляем существующее
+                    cursor.execute("DELETE FROM images WHERE product_id = %s", [product_id])
                     product_image = request.files["product_img"]
-                    print(type(secure_filename(product_image.filename)), type(product_image.mimetype), type(current_product_id))
-                    image_data = [secure_filename(product_image.filename), product_image.mimetype, current_product_id]
-                    query = ("INSERT INTO images (filename, mimetype, product_id) "
-                             "VALUES(%s, %s, %s)")
+                    image_data = [secure_filename(product_image.filename), product_image.mimetype, product_id]
+                    query = ('INSERT INTO images (filename, mimetype, product_id) '
+                             'VALUES(%s, %s, %s)')
                     cursor.execute(query, image_data)
                     product_image.save(join(current_app.config["UPLOAD_FOLDER"], image_data[0]))
                     print(cursor.statement)
                 connection.commit()
-            flash("Товар успешно добавлен", "success")
-            return redirect(url_for("products.new_product"))
+            flash("Товар успешно изменён", "success")
+            return redirect(url_for("products.product", product_id=product_id))
         except connector.errors.DatabaseError as e:
             flash(
                 f"Произошла ошибка при добавлении характеристики. Нарушение связи с базой данных. {e}",

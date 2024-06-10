@@ -8,7 +8,6 @@ function modalShown(event) {
     let newUrl = `/products/${productId}/delete_product`;
     let form = document.getElementById('deleteModalForm');
     form.action = newUrl;
-    console.log(newUrl)
 }
 
 let modal = document.getElementById('deleteModal');

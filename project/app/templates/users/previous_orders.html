@@ -3,10 +3,14 @@
 {% block content %}
 {% for order in orders_data %}
 <div class="container bg-info-subtle rounded pt-3 pb-2 mb-3">
-    <h3>Заказ № {{ order.id }}</h3>
-    <h3>{{ order.name }}</h3>
-    <p>{{ order.description }}</p>
-    <p>{{ order.price }} ₽</p>
+    <h3>Заказ № {{ orders_data[order][0].id }}</h3>
+    {% for product in orders_data[order] %}
+    <h3>{{ product.name }}</h3>
+    {% if product.description %}
+    <p>Описание: {{ product.description }}</p>
+    {% endif %}
+    <p>Цена: {{ product.price }} ₽</p>
+    {% endfor %}
 </div>
 {% endfor %}
 {% endblock %}

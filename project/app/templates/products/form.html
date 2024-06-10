@@ -15,7 +15,7 @@
             id="product_category_select">
             {% for category in categories %}
             {% if action=='edit' %}
-            {% if product_data.category==category.id %}
+            {% if product_data.category_id==category.id %}
             <option value="{{ category.id }}" selected>{{ category.category }}</option>
             {% else %}
             <option value="{{ category.id }}">{{ category.category }}</option>
@@ -45,7 +45,7 @@
         <button class="btn btn-danger deleteBtn" id="product_characteristic_button_1">Удалить</button>
     </div>
     {% endfor %}
-    {% elif action == 'new' %}
+    {% else %}
     <div class="input-group mb-3">
         <select class="form-select" aria-label="Product characteristic" name="product_characteristic_select_1"
             id="product_characteristic_select_1">
@@ -62,17 +62,19 @@
         <button type="button" class="btn btn-success" id="product_characteristic_add_button">Добавить
             характеристику</button>
     </div>
-    {% if action == 'new' %}
     <div class="mb-3">
+        {% if action == 'new' %}
         <label for="product_img">Изображение товара</label>
+        {% else %}
+        <label for="product_img">Новое изображение товара</label>
+        {% endif %}
         <input class="form-control" type="file" name="product_img" id="product_img">
     </div>
-    {% endif %}
     <div class="mb-3">
         <label for="product_description" class="form-label">Описание товара</label>
         {% if action == 'edit' %}
-        <textarea name="product_description" id="product_description" class="form-control" cols="30" rows="7"
-            value="{{ product_data.description }}"></textarea>
+        <textarea name="product_description" id="product_description" class="form-control" cols="30"
+            rows="7">{{ product_data.description }}</textarea>
         {% else %}
         <textarea name="product_description" id="product_description" class="form-control" cols="30"
             rows="7"></textarea>

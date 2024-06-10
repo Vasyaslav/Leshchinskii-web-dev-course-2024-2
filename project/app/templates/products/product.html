@@ -3,6 +3,7 @@
 {% block product_content %}
 <div class="container bg-info-subtle pb-3 rounded mb-4">
     <h1 class="mb-2">{{ product.name }}</h1>
+    <h3 class="mb-2">Категория: {{ product.category }}</h3>
     <h3 class="mb-3">Цена: {{ product.price }} ₽</h3>
 
     <img class="img-fluid mb-3" src="{{ url_for('image', image_id=image.id) }}" alt="Здесь могла быть картинка">

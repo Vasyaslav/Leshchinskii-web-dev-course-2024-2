@@ -75,25 +75,6 @@ def reg():
     return render_template("users/reg.html", user_data=user_data, roles=get_roles())
 
 
-@bp.route("/<int:user_id>/view")
-@check_rights("read")
-def view(user_id):
-    user_data = {}
-    with db_connector.connect().cursor(named_tuple=True, buffered=True) as cursor:
-        query = "SELECT * FROM users WHERE id = %s"
-        cursor.execute(query, [user_id])
-        user_data = cursor.fetchone()
-        if user_data is None:
-            flash("Пользователя нет в базе данных", "danger")
-            return redirect(url_for("users.index"))
-        query = "SELECT name FROM roles WHERE id = %s"
-        cursor.execute(query, [user_data.role_id])
-        user_role = cursor.fetchone()
-        return render_template(
-            "users/view.html", user_data=user_data, user_role=user_role.name
-        )
-
-
 @bp.route("/<int:user_id>/profile", methods=["POST", "GET"])
 @login_required
 @check_rights("read")
@@ -110,31 +91,46 @@ def profile(user_id):
                  "WHERE `user-product`.user_id = %s")
         cursor.execute(query, [current_user.id])
         user_products = cursor.fetchall()
-    # if request.method == "POST":
-    #     print(1)
-    #     if "user_products_csv" in request.files:
-    #         try:
-    #             connection = db_connector.connect()
-    #             with connection.cursor(named_tuple=True, buffered=True) as cursor:
-    #                 user_products_csv = request.files["user_products_csv"]
-    #                 user_products_csv.save(join(current_app.config["UPLOAD_FOLDER"], secure_filename(user_products_csv.filename)))
-    #                 with open(join(current_app.config["UPLOAD_FOLDER"], secure_filename(user_products_csv.filename)), newline='') as f:
-    #                     text = csv.reader(f, delimiter=',')
-    #                     for row in list(text)[1:]:
-    #                         cursor.execute("DELETE FROM `user-product` WHERE user_id = %s", [user_id])
-    #                         cursor.execute("SELECT id FROM products WHERE name")
-    #                         query = ("INSERT INTO `user-product` (user_id, product_id, amount) "
-    #                                  "VALUES(%s, %s, %s)")
-    #                         cursor.execute(query, [current_user.id,  ,row[2]])
-    #                         print(', '.join(row))
-    #                 connection.commit()
-    #                 print(cursor.statement)
-    #         except connector.errors.DatabaseError as e:
-    #             flash(
-    #                 f"Произошла ошибка при добавлении характеристики. Нарушение связи с базой данных. {e}",
-    #                 "danger",
-    #             )
-    #             connection.rollback()
+    # Обработка загрузки списка товаров из csv файла
+    if request.method == "POST":
+        if "user_products_csv" in request.files and secure_filename(request.files["user_products_csv"].filename):
+            try:
+                connection = db_connector.connect()
+                with connection.cursor(named_tuple=True, buffered=True) as cursor:
+                    user_products_csv = request.files["user_products_csv"]
+                    user_products_csv.save(join(current_app.config["UPLOAD_FOLDER"], secure_filename(user_products_csv.filename)))
+                    print(join(current_app.config["UPLOAD_FOLDER"], secure_filename(user_products_csv.filename)))
+                    with open(join(current_app.config["UPLOAD_FOLDER"], secure_filename(user_products_csv.filename)), newline='') as f:
+                        text = list(csv.reader(f, delimiter=','))
+                        print(text)
+                        if len(list(text)) > 1:
+                            print(text)
+                            cursor.execute("DELETE FROM `user-product` WHERE user_id = %s", [user_id])
+                            connection.commit()
+                            print(cursor.statement)
+                            for row in text:
+                                print(1, row)
+                            for row in list(text)[1:]:
+                                cursor.execute("SELECT id FROM products WHERE name = %s", [row[0]])
+                                product_id = cursor.fetchone()
+                                print(row, cursor.statement)
+                                if product_id:
+                                    query = ("INSERT INTO `user-product` (user_id, product_id, amount) "
+                                             "VALUES(%s, %s, %s)")
+                                    cursor.execute(query, [current_user.id, product_id.id, row[2]])
+                                    print(', '.join(row))
+                                else:
+                                    flash(f"Произошла ошибка при добавлении товара, не найден в базе данных. {e}", "danger")
+                                    connection.rollback()
+                    connection.commit()
+                    flash("Список загружен", "success")
+                    return redirect(url_for("users.profile", user_id=user_id))
+            except connector.errors.DatabaseError as e:
+                flash(
+                    f"Произошла ошибка при добавлении товара. Нарушение связи с базой данных. {e}",
+                    "danger",
+                )
+                connection.rollback()
     return render_template("users/profile.html", user_data=user_data, user_products=user_products)
 
 
@@ -246,7 +242,11 @@ def previous_orders(user_id):
                  'ON `order-product`.order_id = orders.id WHERE '
                  'orders.user_id = %s')
         cursor.execute(query, [user_id])
-        orders_data = cursor.fetchall()
+        for product_data in cursor.fetchall():
+            if str(product_data.id) in orders_data:
+                orders_data[str(product_data.id)].append(product_data)
+            else:
+                orders_data[str(product_data.id)] = [product_data]
         print(cursor.statement)
         print(orders_data)
     return render_template("users/previous_orders.html", orders_data=orders_data)

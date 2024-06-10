@@ -17,10 +17,6 @@ from users import bp as users_bp
 
 app.register_blueprint(users_bp)
 
-from visit_logs import bp as visit_logs_bp
-
-app.register_blueprint(visit_logs_bp)
-
 
 from products import bp as products_bp
 
@@ -30,23 +26,6 @@ app.register_blueprint(products_bp)
 from user_products import bp as user_product_bp
 
 app.register_blueprint(user_product_bp)
-
-
-@app.before_request
-def record_action():
-    if request.endpoint == "static":
-        return
-    user_id = current_user.id if current_user.is_authenticated else None
-    path = request.path
-    connection = db_connector.connect()
-    try:
-        with connection.cursor(named_tuple=True, buffered=True) as cursor:
-            query = "INSERT INTO visit_logs (user_id, path) VALUES (%s, %s)"
-            cursor.execute(query, (user_id, path))
-            connection.commit()
-    except connector.errors.DatabaseError as error:
-        print(error)
-        connection.rollback()
 
 
 @app.route("/")
