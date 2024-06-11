@@ -11,6 +11,7 @@ bp = Blueprint("user_products", __name__, url_prefix="/user_products")
 @bp.route("/<int:user_id>/<int:product_id>/add", methods=["POST"])
 @check_rights("update_user")
 def buy_product(user_id, product_id):
+    # Добавление товара в корзину
     data = {"user_id": user_id, "product_id": product_id}
     try:
         connection = db_connector.connect()
@@ -48,6 +49,7 @@ def buy_product(user_id, product_id):
 @bp.route("/<int:user_id>/<int:product_id>/delete", methods=["POST"])
 @check_rights("update_user")
 def delete_product(user_id, product_id):
+    # Удаление товара из корзины
     data = {"user_id": user_id, "product_id": product_id}
     try:
         connection = db_connector.connect()
@@ -81,6 +83,7 @@ def delete_product(user_id, product_id):
 @bp.route("/<int:user_id>/<int:product_id>/add_amount", methods=["POST"])
 @check_rights("update_user")
 def add_amount(user_id, product_id):
+    # Увеличение кол-ва товара при нажатии на кнопку "+" в корзине в профиле
     data = {"user_id": user_id, "product_id": product_id}
     try:
         connection = db_connector.connect()
@@ -113,6 +116,7 @@ def add_amount(user_id, product_id):
 @bp.route("/<int:user_id>/<int:product_id>/reduce_amount", methods=["POST"])
 @check_rights("update_user")
 def reduce_amount(user_id, product_id):
+    # Уменьшение кол-ва товара при нажатии на кнопку "-" в корзине в профиле
     data = {"user_id": user_id, "product_id": product_id}
     try:
         connection = db_connector.connect()
@@ -148,6 +152,7 @@ def reduce_amount(user_id, product_id):
 
 @bp.route("export.csv")
 def user_products_export():
+    # Формирование .csv файла с товарами в корзине пользователя
     with db_connector.connect().cursor(named_tuple=True, buffered=True) as cursor:
         query = ('SELECT name AS "Товар", amount AS "Количество", price AS "Цена_за_штуку" '
                  'FROM products LEFT JOIN `user-product` on products.id = `user-product`.product_id '

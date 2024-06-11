@@ -3,6 +3,7 @@ import mysql.connector
 
 
 class DBConnector:
+    # Класс для установки связи с БД
     def __init__(self, app):
         self.app = app
         self.app.teardown_appcontext(self.disconnect)

@@ -2,6 +2,7 @@ from flask_login import current_user
 
 
 class UsersPolicy:
+    # Класс для проверки выполнимости пользователем каких-либо действий
     def __init__(self, user):
         self.user = user
 
@@ -12,6 +13,9 @@ class UsersPolicy:
         return current_user.is_admin() or current_user.id == self.user.id
 
     def update_user(self):
+        return current_user.is_admin() or current_user.id == self.user.id
+
+    def delete_user(self):
         return current_user.is_admin() or current_user.id == self.user.id
     
     def update_product(self):

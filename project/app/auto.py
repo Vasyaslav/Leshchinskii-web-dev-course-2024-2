@@ -16,6 +16,7 @@ bp = Blueprint("auto", __name__, url_prefix="/auto")
 
 
 def init_login_manager(app):
+    # Подключение к приложению модуля для авторизации пользователей
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = "auto.auth"
@@ -25,6 +26,7 @@ def init_login_manager(app):
 
 
 class User(UserMixin):
+    # Класс для пользователей
     def __init__(self, user_id, user_login, role_id):
         self.id = user_id
         self.user_login = user_login
@@ -39,6 +41,7 @@ class User(UserMixin):
 
 
 def load_user(user_id):
+    # Авторизатор пользователей
     with db_connector.connect().cursor(named_tuple=True) as cursor:
         cursor.execute(
             "SELECT id, login, role_id FROM users WHERE id = %s;", (user_id,)
@@ -50,6 +53,7 @@ def load_user(user_id):
 
 
 def check_rights(action):
+    # Декоратор для проверки прав доступа текущего пользователя
     def decorator(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
@@ -73,6 +77,7 @@ def check_rights(action):
 
 @bp.route("/auth", methods=["POST", "GET"])
 def auth():
+    # Авторизация пользователя
     error = ""
     if request.method == "POST":
         login = request.form["username"]
@@ -98,5 +103,6 @@ def auth():
 
 @bp.route("/logout")
 def logout():
+    # Деавторизация пользователя
     logout_user()
     return redirect(url_for("index"))

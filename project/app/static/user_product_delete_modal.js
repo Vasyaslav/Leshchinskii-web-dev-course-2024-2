@@ -7,9 +7,9 @@ function modalShown(event) {
     let productId = button.dataset.productId;
     let userId = button.dataset.userId;
     let newUrl = `/user_products/${userId}/${productId}/delete`;
-    let form = document.getElementById('deleteModalForm');
+    let form = document.getElementById('deleteUserProductModalForm');
     form.action = newUrl;
 }
 
-let modal = document.getElementById('deleteModal');
-modal.addEventListener('show.bs.modal', modalShown);
+let userProductModal = document.getElementById('deleteUserProductModal');
+userProductModal.addEventListener('show.bs.modal', modalShown);

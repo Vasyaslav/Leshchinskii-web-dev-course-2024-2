@@ -10,6 +10,7 @@ bp = Blueprint("products", __name__, url_prefix="/products")
 
 
 def get_image(product_id):
+    # Получение данных о иллюстрации
     with db_connector.connect().cursor(named_tuple=True) as cursor:
         cursor.execute(
             "SELECT * FROM images where product_id = %s", [product_id]
@@ -19,6 +20,7 @@ def get_image(product_id):
 
 
 def get_categories():
+    # Получение категорий товаров
     with db_connector.connect().cursor(named_tuple=True) as cursor:
         cursor.execute(
             "SELECT * FROM categories"
@@ -28,6 +30,7 @@ def get_categories():
 
 
 def get_characteristics():
+    # Получение характеристик товаров
     with db_connector.connect().cursor(named_tuple=True) as cursor:
         cursor.execute(
             "SELECT * FROM characteristics"
@@ -38,11 +41,13 @@ def get_characteristics():
 
 @bp.route("/category")
 def categories():
+    # Отображение категорий товаров
     return render_template("products/categories.html", categories=get_categories())
 
 
 @bp.route("/category/<int:category_id>", methods=["POST", "GET"])
 def category(category_id):
+    # Отображении товаров конкретной категории
     sort_type = 1
     with db_connector.connect().cursor(named_tuple=True) as cursor:
         query = "SELECT * FROM products WHERE category_id = %s ORDER BY price"
@@ -64,6 +69,7 @@ def category(category_id):
 @login_required
 @check_rights("create")
 def new_category():
+    # Добавление категории
     if request.method == "POST":
         if not request.form["new_category"]:
             flash(
@@ -98,6 +104,7 @@ def new_category():
 @login_required
 @check_rights("delete")
 def delete_category(category_id):
+    # Удаление категории
     connection = db_connector.connect()
     with connection.cursor(named_tuple=True) as cursor:
         query = "DELETE FROM categories WHERE id = %s"
@@ -111,6 +118,7 @@ def delete_category(category_id):
 @login_required
 @check_rights("create")
 def characteristics():
+    # Отображение характеристик товаров
     return render_template("products/characteristics.html", characteristics=get_characteristics())
 
 
@@ -118,6 +126,7 @@ def characteristics():
 @login_required
 @check_rights("create")
 def new_characteristic():
+    # Добавление характеристики
     if request.method == "POST":
         if not request.form["new_characteristic"]:
             flash(
@@ -152,6 +161,7 @@ def new_characteristic():
 @login_required
 @check_rights("delete")
 def delete_characteristic(characteristic_id):
+    # Удаление характеристики
     connection = db_connector.connect()
     with connection.cursor(named_tuple=True) as cursor:
         query = "DELETE FROM characteristics WHERE id = %s"
@@ -163,6 +173,7 @@ def delete_characteristic(characteristic_id):
 
 @bp.route ("/<int:product_id>")
 def product(product_id):
+    # Отображение товара
     with db_connector.connect().cursor(named_tuple=True) as cursor:
         query = ("SELECT products.*, category FROM `products` LEFT JOIN categories "
                  "on products.category_id = categories.id where products.id = %s")
@@ -182,6 +193,7 @@ def product(product_id):
 @login_required
 @check_rights("delete")
 def delete_product(product_id):
+    # Удаление товара
     connection = db_connector.connect()
     with connection.cursor(named_tuple=True) as cursor:
         query = "DELETE FROM products WHERE id = %s"
@@ -194,6 +206,7 @@ def delete_product(product_id):
 @bp.route("/new_product", methods=["POST", "GET"])
 @check_rights("create")
 def new_product():
+    # Добавление товара
     product_name = ""
     characteristics = get_characteristics()
     print(characteristics)
@@ -272,6 +285,7 @@ def new_product():
 @bp.route("/<int:product_id>/edit_product", methods=["POST", "GET"])
 @check_rights("update_product")
 def edit_product(product_id):
+    # Изменение товара
     product_name = ""
     characteristics = get_characteristics()
     print(characteristics)

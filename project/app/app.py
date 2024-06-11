@@ -35,6 +35,7 @@ def index():
 
 @app.route('/images/<image_id>')
 def image(image_id):
+    # Получение иллюстрации к товару
     with db_connector.connect().cursor(named_tuple=True) as cursor:
         cursor.execute(
             "SELECT * FROM images WHERE id = %s", [image_id]
